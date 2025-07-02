@@ -5,6 +5,7 @@ import { PencilSquare, Trash, Save, Eye } from "react-bootstrap-icons";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
+import CameraTest from "./Cameratest";
 
 function CameraScan() {
   const [image, setImage] = useState(null);
@@ -47,7 +48,7 @@ function CameraScan() {
     };
   }, []);
 
-  const version = "1.0.9"; // Updated version to reflect changes
+  const version = "1.1.6"; // Updated version to reflect changes
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -187,46 +188,48 @@ function CameraScan() {
     processCameraImage(file);
   };
 
-  const requestCameraPermission = async () => {
-    try {
-      // Check if running in Android in-app browser
-      const isAndroidInAppBrowser = /Android.*(wv|\.WebView)/i.test(
-        navigator.userAgent
-      );
+  // const requestCameraPermission = async () => {
+  //   try {
+  //     const isAndroidInAppBrowser = /Android.*(wv|\.WebView)/i.test(
+  //       navigator.userAgent
+  //     );
 
-      if (isAndroidInAppBrowser) {
-        // For Android in-app browsers, directly request media access
-        await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
-        return true;
-      }
+  //     // Try to request camera directly for Android in-app browsers
+  //     if (isAndroidInAppBrowser) {
+  //       try {
+  //         await navigator.mediaDevices.getUserMedia({ video: true });
+  //         return true;
+  //       } catch (err) {
+  //         toast.error("Camera not accessible in this browser.");
+  //         return false;
+  //       }
+  //     }
 
-      // Standard permission check for other browsers
-      if (navigator.permissions) {
-        const result = await navigator.permissions.query({ name: "camera" });
-        if (result.state === "granted") {
-          return true;
-        }
-        if (result.state === "prompt" || result.state === "denied") {
-          await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment" },
-          });
-          return true;
-        }
-      } else {
-        // Fallback for browsers without Permissions API
-        await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
-        return true;
-      }
-    } catch (err) {
-      console.error("Camera permission error:", err);
-      toast.error("Camera permission denied or unavailable.");
-      return false;
-    }
-  };
+  //     // Standard browsers
+  //     if (navigator.permissions) {
+  //       const result = await navigator.permissions.query({ name: "camera" });
+  //       if (result.state === "granted") {
+  //         return true;
+  //       }
+  //       if (result.state === "prompt" || result.state === "denied") {
+  //         await navigator.mediaDevices.getUserMedia({
+  //           video: { facingMode: "environment" },
+  //         });
+  //         return true;
+  //       }
+  //     } else {
+  //       await navigator.mediaDevices.getUserMedia({
+  //         video: { facingMode: "environment" },
+  //       });
+  //       return true;
+  //     }
+  //   } catch (err) {
+  //     console.error("Camera permission error:", err);
+  //     toast.error("Camera permission denied or unavailable.");
+  //     return false;
+  //   }
+  // };
+  const handleCapture = async () => {};
 
   const handleOpenCamera = async () => {
     if (!cNo) {
@@ -237,49 +240,50 @@ function CameraScan() {
       toast.error("OpenCV.js is not loaded yet. Please try again.");
       return;
     }
-    const granted = await requestCameraPermission();
-    if (granted) {
-      setIsCameraOpen(true);
-    }
+    // const granted = await requestCameraPermission();
+    // if (granted) {
+    //   setIsCameraOpen(true);
+    // }
+    setIsCameraOpen(true);
   };
 
-  const handleTakePhoto = () => {
-    if (!cameraRef.current) {
-      toast.error("Camera is not initialized.");
-      setIsCameraOpen(false);
-      return;
-    }
-    const dataUri = cameraRef.current.takePhoto();
-    if (!dataUri || dataUri === "data:,") {
-      toast.error("Failed to capture image. Please try again.");
-      setIsCameraOpen(false);
-      return;
-    }
-    setImage(dataUri);
-    setIsCameraOpen(false);
-    toast.success("Image captured successfully!");
+  // const handleTakePhoto = () => {
+  //   if (!cameraRef.current) {
+  //     toast.error("Camera is not initialized.");
+  //     setIsCameraOpen(false);
+  //     return;
+  //   }
+  //   const dataUri = cameraRef.current.takePhoto();
+  //   if (!dataUri || dataUri === "data:,") {
+  //     toast.error("Failed to capture image. Please try again.");
+  //     setIsCameraOpen(false);
+  //     return;
+  //   }
+  //   setImage(dataUri);
+  //   setIsCameraOpen(false);
+  //   toast.success("Image captured successfully!");
 
-    // Convert data URI to File object for processing
-    const byteString = atob(dataUri.split(",")[1]);
-    const mimeString = dataUri.split(",")[0].split(":")[1].split(";")[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    const blob = new Blob([ab], { type: mimeString });
-    const file = new File([blob], `capture-${Date.now()}.jpg`, {
-      type: mimeString,
-      lastModified: Date.now(),
-    });
-    processCameraImage(file);
-  };
+  //   // Convert data URI to File object for processing
+  //   const byteString = atob(dataUri.split(",")[1]);
+  //   const mimeString = dataUri.split(",")[0].split(":")[1].split(";")[0];
+  //   const ab = new ArrayBuffer(byteString.length);
+  //   const ia = new Uint8Array(ab);
+  //   for (let i = 0; i < byteString.length; i++) {
+  //     ia[i] = byteString.charCodeAt(i);
+  //   }
+  //   const blob = new Blob([ab], { type: mimeString });
+  //   const file = new File([blob], `capture-${Date.now()}.jpg`, {
+  //     type: mimeString,
+  //     lastModified: Date.now(),
+  //   });
+  //   processCameraImage(file);
+  // };
 
-  const handleCameraError = (error) => {
-    console.error("Camera error:", error);
-    toast.error(`Failed to access camera: ${error.message || "Unknown error"}`);
-    setIsCameraOpen(false);
-  };
+  // const handleCameraError = (error) => {
+  //   console.error("Camera error:", error);
+  //   toast.error(`Failed to access camera: ${error.message || "Unknown error"}`);
+  //   setIsCameraOpen(false);
+  // };
 
   const handleCloseCamera = () => {
     setIsCameraOpen(false);
@@ -294,13 +298,6 @@ function CameraScan() {
     setStockResultsState([]);
     setProgress(0);
 
-    console.log("File details:", {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      lastModified: file.lastModified,
-    });
-
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         const next = prev + (100 - prev) * 0.1;
@@ -314,42 +311,11 @@ function CameraScan() {
       img.src = imageUrl;
 
       img.onload = () => {
-        if (!canvasRef.current) {
-          console.error("Canvas element is not available");
-          setError("Canvas element is not available for image processing");
-          toast.error("Canvas element is not available for image processing");
-          URL.revokeObjectURL(imageUrl);
-          clearInterval(progressInterval);
-          setIsLoading(false);
-          return;
-        }
-
-        // Crop the image in the center with 9/16 aspect ratio
-        const targetRatio = 12 / 22;
-        let cropWidth = img.width;
-        let cropHeight = Math.round(cropWidth / targetRatio);
-        if (cropHeight > img.height) {
-          cropHeight = img.height;
-          cropWidth = Math.round(cropHeight * targetRatio);
-        }
-        const cropX = Math.floor((img.width - cropWidth) / 2);
-        const cropY = Math.floor((img.height - cropHeight) / 2);
-
-        const canvas = canvasRef.current;
-        canvas.width = cropWidth;
-        canvas.height = cropHeight;
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(
-          img,
-          cropX,
-          cropY,
-          cropWidth,
-          cropHeight,
-          0,
-          0,
-          cropWidth,
-          cropHeight
-        );
+        ctx.drawImage(img, 0, 0);
 
         let src = window.cv.imread(canvas);
         let gray = new window.cv.Mat();
@@ -357,7 +323,7 @@ function CameraScan() {
         let smooth = new window.cv.Mat();
         let sharpened = new window.cv.Mat();
         window.cv.cvtColor(src, gray, window.cv.COLOR_RGBA2GRAY);
-        window.cv.convertScaleAbs(gray, gray, 0.7, 0.3);
+        gray.convertTo(gray, -1, 0.6, 0.3);
         window.cv.adaptiveThreshold(
           gray,
           dst,
@@ -397,8 +363,7 @@ function CameraScan() {
           });
           const processedImageUrl = URL.createObjectURL(processedFile);
           setImage(processedImageUrl);
-          await analyzeImageWithAI(processedFile);
-          URL.revokeObjectURL(imageUrl);
+          await analyzeImageWithAI(file);
           clearInterval(progressInterval);
           setProgress(100);
           setIsLoading(false);
@@ -406,10 +371,9 @@ function CameraScan() {
       };
 
       img.onerror = (err) => {
-        console.error("Detailed image load error:", err);
+        console.error("Error loading image:", err);
         setError("Failed to load image for processing");
         toast.error("Failed to load image for processing");
-        URL.revokeObjectURL(imageUrl);
         clearInterval(progressInterval);
         setIsLoading(false);
       };
@@ -650,7 +614,7 @@ If no tables are found, return an empty JSON array [].`,
             const productNameRaw = productIndex !== -1 ? row[productIndex] : "";
             const isDuplicateProduct =
               typeof productNameRaw === "string" &&
-              productNameRaw.match(/$$  \d+  $$/);
+              productNameRaw.match(/$$ \d+ $$$/);
 
             if (!isTotalRow) {
               if (
@@ -688,6 +652,7 @@ If no tables are found, return an empty JSON array [].`,
               }
 
               if (typeParam === "Counter") {
+                // Counter-specific validations
                 if (
                   !isDuplicateProduct &&
                   ksbclIndex !== -1 &&
@@ -743,7 +708,7 @@ If no tables are found, return an empty JSON array [].`,
                 ) {
                   const rateValue = Number(row[rateIndex]);
                   const cbValue =
-                    Number(row[totalIndex]) - Number(row[outSaleIndex]);
+                    Number(row[totalIndex]) - Number(row[outSaleIndex]); // Use totalIndex for C_B
                   const actualAmount = Number(row[amountIndex]);
                   const expectedAmount =
                     stockData.data.Price * Number(row[outSaleIndex]);
@@ -777,6 +742,7 @@ If no tables are found, return an empty JSON array [].`,
                   }
                 }
               } else {
+                // Godown-specific validations
                 if (
                   !isDuplicateProduct &&
                   ksbclIndex !== -1 &&
@@ -815,7 +781,7 @@ If no tables are found, return an empty JSON array [].`,
                   } else if (
                     counterTransferValue !== stockData.data.Counter_Transfer &&
                     stockData.data.Counter_Transfer > 0 &&
-                    stockData.data.Counter_Transfer != null
+                    stockData.Counter_Transfer != null
                   ) {
                     validations.push(
                       `Counter Transfer Mismatch: ${counterTransferValue} does not match expected ${stockData.data.Counter_Transfer}`
@@ -890,7 +856,7 @@ If no tables are found, return an empty JSON array [].`,
               }
 
               if (stockData?.error === "Product does not exist") {
-                validations.length = 0;
+                validations.length = 0; // Clear all other validations
                 validations.push("Error: Product Name Spelling Wrong");
               }
               if (amountIndex !== -1) {
@@ -939,9 +905,9 @@ If no tables are found, return an empty JSON array [].`,
         setAmounts(amountValues);
         if (updatedTables.length === 0) {
           updatedTables.push([["No tables extracted"]]);
-          toast.warning("No tables detected in the image");
+          toast.warn("No tables detected in the image");
         } else {
-          toast.success("Table extraction and validation completed!");
+          toast.success("Table extraction and validation completed!", "success");
         }
         setTablesData(updatedTables);
 
@@ -951,12 +917,12 @@ If no tables are found, return an empty JSON array [].`,
         console.error("Error parsing JSON response:", parseError);
         setError(`Failed to parse JSON response: ${parseError.message}`);
         setTablesData([]);
-        toast.error("Error processing image");
+        toast.error("Error processing image", "error");
       }
     } catch (error) {
       console.error("Error analyzing image:", error);
       setError(`Failed to analyze the image: ${error.message}`);
-      toast.error("Error processing image");
+      toast.error("Error processing image", "error");
     } finally {
       setIsLoading(false);
     }
@@ -1899,33 +1865,11 @@ If no tables are found, return an empty JSON array [].`,
         </div>
       </nav>
       <canvas ref={canvasRef} style={{ display: "none" }} />
-      {isCameraOpen && (
+      {isCameraOpen && !image && (
         <div className="card fade-in">
-          <h2 className="section-title">Camera Preview</h2>
-          <div className="camera-preview-container">
-            <Camera
-              ref={cameraRef}
-              aspectRatio={12 / 22}
-              //facingMode={CameraType.REAR}
-              errorMessages={{
-                noCameraAccessible:
-                  "No camera device accessible. Please connect your camera or try a different device.",
-                permissionDenied:
-                  "Camera permission denied. Please enable camera access in your browser settings.",
-                switchCamera:
-                  "Unable to switch camera. Only one camera is available.",
-                canvas: "Canvas is not supported in this browser.",
-              }}
-              onError={handleCameraError}
-            />
-          </div>
+          {/* <h2 className="section-title">Camera Preview</h2> */}
+          <CameraTest onCapture={processCameraImage} />
           <div className="camera-controls">
-            <button
-              className="action-button btn-primary"
-              onClick={handleTakePhoto}
-            >
-              Capture
-            </button>
             <button
               className="action-button btn-secondary"
               onClick={handleCloseCamera}

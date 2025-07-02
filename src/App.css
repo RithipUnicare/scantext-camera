@@ -1937,7 +1937,7 @@ svg.app-brand-logo {
   max-width: 480px;
   aspect-ratio: 12 / 22;
   background: #222;
-  border-radius: 12px;
+  border-radius: 0px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -1968,7 +1968,7 @@ svg.app-brand-logo {
   /* 21/22 aspect ratio, max 90% of container */
   width: 90vw;
   max-width: 90vw;
-  aspect-ratio: 12/22;
+  aspect-ratio: 13/22;
   max-height: 90vh;
   margin: auto;
   background: rgba(0, 0, 0, 0.05);

@@ -9,6 +9,7 @@ import SingleImage from "./SingleImage";
 import FinalApp from "./FinalApp";
 import TwiceCheck from "./TwiceCheck";
 import CameraScan from "./Camera";
+import CameraTest from "./CameraTest";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
@@ -19,6 +20,7 @@ root.render(
     {/* <FinalApp /> */}
     {/* <TwiceCheck /> */}
     <CameraScan />
+    {/* <CameraTest /> */}
   </React.StrictMode>
 );
 
