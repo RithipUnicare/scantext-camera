@@ -1,11 +1,15 @@
-export const processScannedImage = (imageSource, onImageProcessed, options = {}) => {
+export const processScannedImage = (
+  imageSource,
+  onImageProcessed,
+  options = {}
+) => {
   // Default filter values
   const defaultFilters = {
     brightness: 15,
     contrast: 35,
-    gamma: 1.4,
+    gamma: 1.2,
     threshold: 140,
-    sharpness: 0.5,
+    sharpness: 0.3,
     noiseReduction: 0.2,
   };
 
@@ -15,7 +19,7 @@ export const processScannedImage = (imageSource, onImageProcessed, options = {})
   const drawImageOnCanvas = (img, canvas, maintainQuality = true) => {
     if (!canvas || !img) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const maxWidth = maintainQuality ? 1200 : 800;
@@ -33,7 +37,7 @@ export const processScannedImage = (imageSource, onImageProcessed, options = {})
     canvas.height = height;
 
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingQuality = "high";
 
     ctx.drawImage(img, 0, 0, width, height);
   };
@@ -86,9 +90,15 @@ export const processScannedImage = (imageSource, onImageProcessed, options = {})
     const originalData = new Uint8ClampedArray(data);
 
     const sharpenKernel = [
-      0, -intensity, 0,
-      -intensity, 1 + 4 * intensity, -intensity,
-      0, -intensity, 0,
+      0,
+      -intensity,
+      0,
+      -intensity,
+      1 + 4 * intensity,
+      -intensity,
+      0,
+      -intensity,
+      0,
     ];
 
     for (let y = 1; y < height - 1; y++) {
@@ -99,7 +109,8 @@ export const processScannedImage = (imageSource, onImageProcessed, options = {})
         for (let ky = -1; ky <= 1; ky++) {
           for (let kx = -1; kx <= 1; kx++) {
             const pixelIdx = ((y + ky) * width + (x + kx)) * 4;
-            sum += originalData[pixelIdx] * sharpenKernel[(ky + 1) * 3 + (kx + 1)];
+            sum +=
+              originalData[pixelIdx] * sharpenKernel[(ky + 1) * 3 + (kx + 1)];
           }
         }
 
@@ -148,22 +159,26 @@ export const processScannedImage = (imageSource, onImageProcessed, options = {})
   };
 
   // Create a canvas element
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   const img = new window.Image();
 
   img.onload = () => {
     drawImageOnCanvas(img, canvas, true);
-    applyEnhancedDocumentFilters(canvas.getContext('2d'), canvas.width, canvas.height);
+    applyEnhancedDocumentFilters(
+      canvas.getContext("2d"),
+      canvas.width,
+      canvas.height
+    );
 
     try {
-      const processedDataUrl = canvas.toDataURL('image/png', 1.0);
+      const processedDataUrl = canvas.toDataURL("image/png", 1.0);
       onImageProcessed(processedDataUrl);
     } catch (e) {
       onImageProcessed(null);
     }
   };
 
-  if (typeof imageSource === 'string') {
+  if (typeof imageSource === "string") {
     img.src = imageSource;
   } else if (imageSource instanceof File) {
     const reader = new FileReader();

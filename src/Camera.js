@@ -6,7 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import CameraTest from "./Cameratest";
-
+import { processScannedImage } from "./PictureEnchance";
 function CameraScan() {
   const [image, setImage] = useState(null);
   const [tablesData, setTablesData] = useState([]);
@@ -48,7 +48,7 @@ function CameraScan() {
     };
   }, []);
 
-  const version = "1.1.6"; // Updated version to reflect changes
+  const version = "1.1.7"; // Updated version to reflect changes
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -188,47 +188,6 @@ function CameraScan() {
     processCameraImage(file);
   };
 
-  // const requestCameraPermission = async () => {
-  //   try {
-  //     const isAndroidInAppBrowser = /Android.*(wv|\.WebView)/i.test(
-  //       navigator.userAgent
-  //     );
-
-  //     // Try to request camera directly for Android in-app browsers
-  //     if (isAndroidInAppBrowser) {
-  //       try {
-  //         await navigator.mediaDevices.getUserMedia({ video: true });
-  //         return true;
-  //       } catch (err) {
-  //         toast.error("Camera not accessible in this browser.");
-  //         return false;
-  //       }
-  //     }
-
-  //     // Standard browsers
-  //     if (navigator.permissions) {
-  //       const result = await navigator.permissions.query({ name: "camera" });
-  //       if (result.state === "granted") {
-  //         return true;
-  //       }
-  //       if (result.state === "prompt" || result.state === "denied") {
-  //         await navigator.mediaDevices.getUserMedia({
-  //           video: { facingMode: "environment" },
-  //         });
-  //         return true;
-  //       }
-  //     } else {
-  //       await navigator.mediaDevices.getUserMedia({
-  //         video: { facingMode: "environment" },
-  //       });
-  //       return true;
-  //     }
-  //   } catch (err) {
-  //     console.error("Camera permission error:", err);
-  //     toast.error("Camera permission denied or unavailable.");
-  //     return false;
-  //   }
-  // };
   const handleCapture = async () => {};
 
   const handleOpenCamera = async () => {
@@ -240,56 +199,14 @@ function CameraScan() {
       toast.error("OpenCV.js is not loaded yet. Please try again.");
       return;
     }
-    // const granted = await requestCameraPermission();
-    // if (granted) {
-    //   setIsCameraOpen(true);
-    // }
     setIsCameraOpen(true);
   };
-
-  // const handleTakePhoto = () => {
-  //   if (!cameraRef.current) {
-  //     toast.error("Camera is not initialized.");
-  //     setIsCameraOpen(false);
-  //     return;
-  //   }
-  //   const dataUri = cameraRef.current.takePhoto();
-  //   if (!dataUri || dataUri === "data:,") {
-  //     toast.error("Failed to capture image. Please try again.");
-  //     setIsCameraOpen(false);
-  //     return;
-  //   }
-  //   setImage(dataUri);
-  //   setIsCameraOpen(false);
-  //   toast.success("Image captured successfully!");
-
-  //   // Convert data URI to File object for processing
-  //   const byteString = atob(dataUri.split(",")[1]);
-  //   const mimeString = dataUri.split(",")[0].split(":")[1].split(";")[0];
-  //   const ab = new ArrayBuffer(byteString.length);
-  //   const ia = new Uint8Array(ab);
-  //   for (let i = 0; i < byteString.length; i++) {
-  //     ia[i] = byteString.charCodeAt(i);
-  //   }
-  //   const blob = new Blob([ab], { type: mimeString });
-  //   const file = new File([blob], `capture-${Date.now()}.jpg`, {
-  //     type: mimeString,
-  //     lastModified: Date.now(),
-  //   });
-  //   processCameraImage(file);
-  // };
-
-  // const handleCameraError = (error) => {
-  //   console.error("Camera error:", error);
-  //   toast.error(`Failed to access camera: ${error.message || "Unknown error"}`);
-  //   setIsCameraOpen(false);
-  // };
 
   const handleCloseCamera = () => {
     setIsCameraOpen(false);
   };
-
-  const processCameraImage = async (file) => {
+  const processCameraImage = async (input) => {
+    console.log("Processing camera image:", input);
     setIsLoading(true);
     setError(null);
     setTablesData([]);
@@ -297,6 +214,22 @@ function CameraScan() {
     setStockDetails({});
     setStockResultsState([]);
     setProgress(0);
+
+    // Convert Blob to File if input is a Blob
+    let file;
+    if (input instanceof Blob && !(input instanceof File)) {
+      file = new File([input], "camera-capture.jpeg", {
+        type: input.type || "image/jpeg",
+        lastModified: Date.now(),
+      });
+    } else if (input instanceof File) {
+      file = input; // Already a File, use as is
+    } else {
+      setError("Invalid input: Expected a File or Blob");
+      toast.error("Invalid input: Expected a File or Blob");
+      setIsLoading(false);
+      return;
+    }
 
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
@@ -306,77 +239,33 @@ function CameraScan() {
     }, 200);
 
     try {
-      const imageUrl = URL.createObjectURL(file);
-      const img = new Image();
-      img.src = imageUrl;
-
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-
-        let src = window.cv.imread(canvas);
-        let gray = new window.cv.Mat();
-        let dst = new window.cv.Mat();
-        let smooth = new window.cv.Mat();
-        let sharpened = new window.cv.Mat();
-        window.cv.cvtColor(src, gray, window.cv.COLOR_RGBA2GRAY);
-        gray.convertTo(gray, -1, 0.6, 0.3);
-        window.cv.adaptiveThreshold(
-          gray,
-          dst,
-          255,
-          window.cv.ADAPTIVE_THRESH_GAUSSIAN_C,
-          window.cv.THRESH_BINARY,
-          15,
-          8
-        );
-        window.cv.bilateralFilter(
-          dst,
-          smooth,
-          9,
-          75,
-          75,
-          window.cv.BORDER_DEFAULT
-        );
-        let kernel = window.cv.matFromArray(
-          3,
-          3,
-          window.cv.CV_32F,
-          [0, -1, 0, -1, 5, -1, 0, -1, 0]
-        );
-        window.cv.filter2D(smooth, sharpened, window.cv.CV_8U, kernel);
-        window.cv.imshow(canvas, sharpened);
-        src.delete();
-        gray.delete();
-        dst.delete();
-        smooth.delete();
-        kernel.delete();
-        sharpened.delete();
-
-        canvas.toBlob(async (blob) => {
-          const processedFile = new File([blob], file.name, {
-            type: file.type,
-            lastModified: file.lastModified,
-          });
-          const processedImageUrl = URL.createObjectURL(processedFile);
-          setImage(processedImageUrl);
-          await analyzeImageWithAI(file);
+      processScannedImage(file, async (processedDataUrl) => {
+        if (!processedDataUrl) {
+          setError("Failed to enhance image");
+          toast.error("Failed to enhance image");
           clearInterval(progressInterval);
-          setProgress(100);
           setIsLoading(false);
-        }, file.type);
-      };
+          return;
+        }
+        setImage(processedDataUrl);
 
-      img.onerror = (err) => {
-        console.error("Error loading image:", err);
-        setError("Failed to load image for processing");
-        toast.error("Failed to load image for processing");
+        // Convert dataURL to File for analyzeImageWithAI
+        const res = await fetch(processedDataUrl);
+        const blob = await res.blob();
+        const enhancedFile = new File(
+          [blob],
+          file.name || "enhanced-image.jpeg",
+          {
+            type: file.type || "image/jpeg",
+            lastModified: file.lastModified || Date.now(),
+          }
+        );
+
+        await analyzeImageWithAI(enhancedFile); // Pass enhancedFile instead of original file
         clearInterval(progressInterval);
+        setProgress(100);
         setIsLoading(false);
-      };
+      });
     } catch (error) {
       console.error("Error processing camera image:", error);
       setError(`Failed to process camera image: ${error.message}`);
@@ -811,8 +700,7 @@ If no tables are found, return an empty JSON array [].`,
                     const closeBalance = stockData?.data?.ClosingStock || 0;
                     let calculatedAmount = 0;
                     if (closeBalance > 0) {
-                      calculatedAmount =
-                        (outSaleValue / closeBalance) * rateValue;
+                      calculatedAmount = outSaleValue * rateValue;
                     }
                     if (Math.abs(actualAmount - calculatedAmount) > 0.01) {
                       validations.push(
@@ -907,7 +795,10 @@ If no tables are found, return an empty JSON array [].`,
           updatedTables.push([["No tables extracted"]]);
           toast.warn("No tables detected in the image");
         } else {
-          toast.success("Table extraction and validation completed!", "success");
+          toast.success(
+            "Table extraction and validation completed!",
+            "success"
+          );
         }
         setTablesData(updatedTables);
 
